@@ -1,28 +1,34 @@
+import RPi.GPIO as GPIO
 import time
 
+# Set up GPIO
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(12, GPIO.OUT)
+
 def generate_frequency(freq):
-    period = 1.0 / freq
-    half_period = period / 2
-    try:
-        while True:
-            print("HIGH")
-            time.sleep(half_period)
-            print("LOW")
-            time.sleep(half_period)
-    except KeyboardInterrupt:
-        print("Frequency generation stopped.")
+    if freq < 1 or freq > 80000:
+        print("Frequency must be between 1 Hz and 80 kHz")
+        return
+    
+    period = 1 / freq
+    while True:
+        try:
+            GPIO.output(12, GPIO.HIGH)
+            time.sleep(period / 2)
+            GPIO.output(12, GPIO.LOW)
+            time.sleep(period / 2)
+        except KeyboardInterrupt:
+            break
 
-def main():
-    try:
-        freq = int(input("Enter frequency (1-80 Hz): "))
-        if 1 <= freq <= 80:
+try:
+    while True:
+        user_input = input("Enter desired frequency (1-80000 Hz): ")
+        try:
+            freq = int(user_input)
             generate_frequency(freq)
-        else:
-            print("Frequency must be between 1 and 80 Hz.")
-    except ValueError:
-        print("Please enter a valid whole number.")
-    except KeyboardInterrupt:
-        print("Program interrupted.")
-
-if __name__ == "__main__":
-    main()
+        except ValueError:
+            print("Please enter a valid whole number.")
+except KeyboardInterrupt:
+    print("\nProgram terminated.")
+finally:
+    GPIO.cleanup()
